@@ -15,7 +15,11 @@ Chron::Timer::Timer(std::string run) : run(run)
 Chron::Timer::~Timer()
 {
   clock_gettime(CLOCK_MONOTONIC, &finish);
-  Timer::times[this->run] =  this->finish.tv_nsec - this->start.tv_nsec;
+  Timer::times[this->run] =  ((this->finish.tv_sec *  1000000000) + this->finish.tv_nsec) \
+    - ((this->start.tv_sec * 1000000000) +this->start.tv_nsec);
+  std::cout << this->finish.tv_nsec << std::endl;
+  std::cout << this->start.tv_nsec << std::endl;
+
 
 }
 
