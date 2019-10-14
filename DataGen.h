@@ -17,6 +17,8 @@ template<typename T, Distribution U>
 class DataGen {
 
     std::unique_ptr<T[]> data;
+    T *front;
+    T *back;
     size_t len;
 
     void swap(T *a, T *b) {
@@ -26,27 +28,35 @@ class DataGen {
     }
 
 public:
-    DataGen<T, U>(size_t);
+    DataGen<T, U>(size_t, size_t);
 
     void regen();
 
     size_t get_len();
 
     T *getData();
+
+    T yield();
+};
+
+template<typename T>
+class DataGen <T, Distribution::Custom> {
+
 };
 
 template<typename T, Distribution U>
-DataGen<T, U>::DataGen(size_t sz) {
+DataGen<T, U>::DataGen(size_t min, size_t max) {
   time_t t;
+  size_t range = max - min;
   srand((unsigned) time(&t));
-  data = std::unique_ptr<T[]>(new T[sz]);
-  for(size_t i = 0; i < sz; ++i) {
+  data = std::unique_ptr<T[]>(new T[range]);
+  front = data.get();
+  back = &data[range-1];
+  for(size_t i = 0; i < range; ++i) {
     data[i] = static_cast<T>(i) + 1;
   }
-  len = sz;
+  len = range;
   regen();
-
-  usleep(900);
 }
 
 template<typename T, Distribution U>
@@ -57,6 +67,7 @@ void DataGen<T, U>::regen() {
     swap(&data[i - 1], &data[j]);
   }
   srand(data[0]);
+  front = data.get();
 }
 
 template<typename T, Distribution U>
@@ -69,7 +80,16 @@ size_t DataGen<T, U>::get_len() {
   return len;
 }
 
-double rand_normal(double mean, double stddev)
+template <typename T, Distribution U>
+T DataGen<T, U>::yield() {
+  if(front + 1 > back) {
+    regen();
+  }
+  front++;
+  return *(front - 1);
+}
+
+int rand_normal(double mean, double stddev)
 {//Box muller method
   static double n2 = 0.0;
   static int n2_cached = 0;
@@ -90,7 +110,7 @@ double rand_normal(double mean, double stddev)
       n2 = y*d;
       double result = n1*stddev + mean;
       n2_cached = 1;
-      return result;
+      return int(result);
     }
   }
   else
