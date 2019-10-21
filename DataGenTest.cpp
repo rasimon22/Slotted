@@ -69,5 +69,19 @@ TEST_CASE("Datagen_Yield") {
   REQUIRE(true);
 }
 
-
+TEST_CASE("DataGen_Linear") {
+    std::unique_ptr<int[]> ticks(new int[101]);
+    DataGen<int, Distribution::Uniform> gen(0, 100);
+    DataGen<int, Distribution::Uniform> gen2(0, 100);
+    for(int i = 0; i < 100; ++i) {
+        ticks[i] = 0;
+    }
+    for(int i = 0; i < 2000000; ++i) {
+        ticks[DataGen<int, Distribution::Uniform>::rand_linear(gen, gen2)]++;
+    }
+    for(int i = 0; i < 99; ++i) {
+        std::cout << ticks[i] << std::endl;
+        REQUIRE(ticks[i] <= ticks[i+1]);
+    }
+}
 
