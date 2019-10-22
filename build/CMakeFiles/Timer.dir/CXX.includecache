@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rasimon/workspace/Slotted/Timer.cpp
+Timer.h
+/home/rasimon/workspace/Slotted/Timer.h
+iostream
+-
+
+/home/rasimon/workspace/Slotted/Timer.h
+map
+-
+string
+-
+time.h
+-
+

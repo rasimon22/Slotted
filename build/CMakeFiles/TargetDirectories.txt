@@ -1,0 +1,5 @@
+/home/rasimon/workspace/Slotted/build/CMakeFiles/rebuild_cache.dir
+/home/rasimon/workspace/Slotted/build/CMakeFiles/edit_cache.dir
+/home/rasimon/workspace/Slotted/build/CMakeFiles/Timer.dir
+/home/rasimon/workspace/Slotted/build/CMakeFiles/Slotted.dir
+/home/rasimon/workspace/Slotted/build/CMakeFiles/Test.dir
