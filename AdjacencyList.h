@@ -1,24 +1,24 @@
 #include <memory>
 
 struct Node {
-        size_t data;
-        size_t count;
+        long data;
+        long count;
         std::unique_ptr<Node> next;
-        Node(): data(0), count(1), next(std::unique_ptr<Node>(nullptr)){};
-        Node(size_t data): data(data), count(1), next(std::unique_ptr<Node>(nullptr)){
+        Node(): data(-1), count(1), next(std::unique_ptr<Node>(nullptr)){};
+        Node(long data): data(data), count(1), next(std::unique_ptr<Node>(nullptr)){
         }
 };
 
 class AdjacencyList {
     std::unique_ptr<Node[]> data;
-    size_t size;
-    void add(size_t, size_t);
+    long size;
+    void add(long, long);
 public:
     
     AdjacencyList();
-    AdjacencyList(size_t);
-    void insert(size_t, size_t);
-    bool is_adjacent(size_t, size_t);
+    AdjacencyList(long);
+    void insert(long, long);
+    bool is_adjacent(long, long);
     void print();
 
 };

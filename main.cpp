@@ -11,7 +11,7 @@ void test_with_uniform(int c, int s, int k, std::string dist) {
 
     Chron::Timer main_t(std::string("uniform_timer"));
     {
-    DataGen<size_t, Distribution::Uniform> gen(1,c);
+    DataGen<size_t, Distribution::Uniform> gen(1,c - 1);
 
     AdjacencyList a1(c);
     for (int i = 0; i < s; ++ i) {
@@ -25,7 +25,7 @@ void test_with_uniform(int c, int s, int k, std::string dist) {
 
         for (int k = 0; k < classes.size(); ++k) {
             //iterate over each class per student
-            for (int l = 0; l < classes.size(); ++l) {
+            for (int l = k; l < classes.size(); ++l) {
                 //make edge for all other classes in students
                 //schedule
                 if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
@@ -51,12 +51,12 @@ void test_with_normal(int c, int s, int k, std::string dist) {
         for (int j = 0; j < k; ++j) {
             //for classes per student
             //pick a random class
-            classes.push_back(rand_normal(c/2, 4.0));
+            classes.push_back(rand_normal(c/2, 2.0));
         }
 
         for (int k = 0; k < classes.size(); ++k) {
             //iterate over each class per student
-            for (int l = 0; l < classes.size(); ++l) {
+            for (int l = k; l < classes.size(); ++l) {
                 //make edge for all other classes in students
                 //schedule
                 if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
@@ -73,8 +73,8 @@ std::cout << Chron::Timer::duration(std::string("linear_timer"), Chron::Scale::N
 void test_with_linear(int c, int s, int k, std::string dist) {
     {
     Chron::Timer main_t(std::string("linear_timer"));
-    DataGen<size_t, Distribution::Uniform> gen(1,c);
-    DataGen<size_t, Distribution::Uniform> gen2(1,c);
+    DataGen<size_t, Distribution::Uniform> gen(1,c-1);
+    DataGen<size_t, Distribution::Uniform> gen2(1,c-1);
 
     AdjacencyList a1(c);
     for (int i = 0; i < s; ++ i) {
@@ -88,7 +88,7 @@ void test_with_linear(int c, int s, int k, std::string dist) {
 
         for (int k = 0; k < classes.size(); ++k) {
             //iterate over each class per student
-            for (int l = 0; l < classes.size(); ++l) {
+            for (int l = k; l < classes.size(); ++l) {
                 //make edge for all other classes in students
                 //schedule
                 if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);

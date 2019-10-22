@@ -3,14 +3,14 @@
 
 AdjacencyList::AdjacencyList() {};
 
-AdjacencyList::AdjacencyList(size_t init_size) {
+AdjacencyList::AdjacencyList(long init_size) {
     data = std::unique_ptr<Node[]>(new Node[init_size + 1]);
     size = init_size;
 }
 
-void AdjacencyList::add(size_t n1, size_t n2) {
+void AdjacencyList::add(long n1, long n2) {
     if (n1 <= size && n2 <= size) {
-        if (data[n1].data == 0) {
+        if (data[n1].data == -1) {
             data[n1].data = n2;
             return;
         } else {
@@ -32,7 +32,7 @@ void AdjacencyList::add(size_t n1, size_t n2) {
 }
 
 void  AdjacencyList::print() {
-    for(size_t i = 0; i < size; ++i) {
+    for(long i = 0; i < size; ++i) {
         std::cout << i << ")";
         Node *it(&data[i]);
         std::cout << "->" << "(" << it->data << ":" << it->count << ")";
@@ -44,7 +44,7 @@ void  AdjacencyList::print() {
     }
 }
 
-void AdjacencyList::insert(size_t n1, size_t n2) {
+void AdjacencyList::insert(long n1, long n2) {
     add(n1, n2);
     add(n2, n1);
 }
