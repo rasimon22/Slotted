@@ -9,7 +9,7 @@ AdjacencyList::AdjacencyList(long init_size) {
 }
 
 void AdjacencyList::add(long n1, long n2) {
-    if (n1 <= size && n2 <= size) {
+    if (n1 < size-1 && n1 > 0 && n2 < size-1 && n2 > 0) {
         if (data[n1].data == -1) {
             data[n1].data = n2;
             return;

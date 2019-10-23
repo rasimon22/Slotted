@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#include <vector>
 enum class Distribution {
     Uniform = 0, Skewed = 1, Four_Tiered = 2, Custom = 3
 };
@@ -59,7 +60,7 @@ DataGen<T, U>::DataGen(size_t min, size_t max) {
     front = data.get();
     back = &data[range-1];
     for(size_t i = 0; i < range; ++i) {
-    data[i] = static_cast<T>(i) + 1;
+    data[i] = static_cast<T>(min + i) + 1;
     }
     len = range;
     regen();
@@ -130,5 +131,35 @@ template <typename T, Distribution U>
 int DataGen<T, U>::rand_linear(DataGen<T,U> &first, DataGen<T, U> &second){
     return std::max(first.yield(), second.yield());
 }
+
+template<typename T, Distribution U>
+int rand_tiered(DataGen<T,U> &g1, DataGen<T,U> &g2, DataGen<T,U> &g3, DataGen<T,U> &g4, int probs[4]) {
+    time_t t;
+    int sum = 0; 
+    for(int i = 0; i < 4; ++i) {
+        sum += probs[i];
+    }
+    short index = 0;
+    int pick = (rand() % sum);
+    if (pick > probs[0]) index = 1;
+    if (pick > probs[1]) index = 2;
+    if (pick > probs[2]) index = 3;
+    switch (index){
+
+        case 0:
+            return g1.yield();
+            break;
+        case 1:
+            return g2.yield();
+            break;
+        case 2:
+            return g3.yield();
+            break;
+        case 3:
+            return g4.yield();
+            break;
+    }
+} 
+
 
 #endif //SLOTTED_DATAGEN_H
