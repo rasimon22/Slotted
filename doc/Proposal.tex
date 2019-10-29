@@ -1,0 +1,75 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{fancyhdr}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{subcaption}
+\pagestyle{fancy}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{5}
+\begin{document}
+    \fancyhead{}
+    \lhead{CSE 7350}
+    \rhead{Richard Simon}
+    \fancyfoot{}
+    \cfoot{\thepage}
+    \begin{titlepage}
+        \begin{center}
+            \vspace*{1cm}
+
+            \textbf{CSE 7350}
+
+            \vspace{0.5cm}
+            Course Timeslot and Student Assignment Project
+            \vspace{1.5cm}
+
+            \textbf{Richard Simon}
+
+            \vfill
+
+            \vspace{0.8cm}
+
+            \includegraphics[width=0.4\textwidth]{university.jpg}
+
+            Computer Science\\
+            Southern Methodist University\\
+            United States\\
+            22 October, 2019
+
+        \end{center}
+    \end{titlepage}
+    \doublespacing
+    \tableofcontents
+%    \singlespacing
+    \newpage
+
+    \section{Computing Environment}
+	The computing environment I used for testing is a desktop workstation. The machine is running Arch Linux, kernel version 5.3.7-arch1-1-ARCH. The machine has an Intel i9 9900k 16 core CPU pegged at 5.0GHz.
+    \section{Data Generation}
+    \subsection{Uniform Distribution}
+        \subsubsection {Method}
+            This data generator will produce a distribution such that each course number always has an equal probability of being selected next. The algorithm I chose to implement this functionality is aptly named a uniform shuffle. The algorithm is quite straightforward. The algorithm operates on each element $a_i \mid a \in [a_i...a_0]$, choosing a random element $a_j \mid j >= i$ and swapping the elements.
+        \subsubsection{Runtime}
+            Because the algorithm operates on each element exactly once, the runtime is tightly bounded by a linear function. That is, the function expressing the runtime of the algorithm is $\Theta(n)$, where n is the difference between the maximum output value of the generator, and the minimum (the total number of elements in the buffer that will be operated on). Each time the full buffer of shuffled courses has been yielded, the generator will re-shuffle the buffer to ensure uniformity. Because of this, when generating the course numbers, the runtime will be roughly $\Theta(C *S * K )$. The runtime data for uniform data generation bellow support a runtime function $\Theta(C*S*K)$. The number of possible courses was held constant for this experiment, to better illustrate the linear relationship S and K have with the total runtime.
+
+	\begin{table}[h!]
+	\begin{tabular}{llllllll}
+	c = 1,000   & Courses / Student & 100    & 200   & 400   & 800   & 1600  & 3200  \\
+	\# Students &                   &        &       &       &       &       &       \\
+	100         &                   & 0.005s & 0.006  & 0.008 & 0.012 & 0.20  & 0.038 \\
+	200         &                   & 0.006  & 0.008 & 0.012 & 0.021 & 0.038 & 0.072 \\
+	400         &                   & 0.008  & 0.013 & 0.021 & 0.036 & 0.072 & 0.142
+	\end{tabular}
+	\end{table}
+    \subsection{Skewed (Linear) Distribution}
+        \subsubsection{Method}
+            The method to create a linear distribution of data is rather straightforward also. I drafted off of my efforts for the uniform distribution to create a skewed one. Since each number generated from a uniform number generator has an equal probability of being chosen, creating 2 generators with different random seeds, and taking a max of their yields will create a roughly linear distribution, skewed towards larger course numbers.
+        \subsubsection{Runtime}
+             Because each generator has a linear time complexity to properly shuffle its data, running 2 of them serially will have a time complexity of $\Theta(2n)$
+
+
+
+\end{document}
