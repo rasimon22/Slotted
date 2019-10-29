@@ -57,18 +57,20 @@
 
 	\begin{table}[h!]
 	\begin{tabular}{llllllll}
-	c = 1,000   & Courses / Student & 100    & 200   & 400   & 800   & 1600  & 3200  \\
+	c = 4,000   & Courses / Student & 8    & 16   & 32   & 64   & 128  & 256  \\
 	\# Students &                   &        &       &       &       &       &       \\
-	100         &                   & 0.005s & 0.006  & 0.008 & 0.012 & 0.20  & 0.038 \\
-	200         &                   & 0.006  & 0.008 & 0.012 & 0.021 & 0.038 & 0.072 \\
-	400         &                   & 0.008  & 0.013 & 0.021 & 0.036 & 0.072 & 0.142
+	1024000         &                   & 250ms & 410ms  & 720ms & 1350ms & 2500ms  & 5000ms \\
+	2048000         &                   & 450ms  & 720ms & 1387ms & 2550ms & 5000ms & 9855ms \\
 	\end{tabular}
 	\end{table}
     \subsection{Skewed (Linear) Distribution}
         \subsubsection{Method}
-            The method to create a linear distribution of data is rather straightforward also. I drafted off of my efforts for the uniform distribution to create a skewed one. Since each number generated from a uniform number generator has an equal probability of being chosen, creating 2 generators with different random seeds, and taking a max of their yields will create a roughly linear distribution, skewed towards larger course numbers.
+            The method to c reate a linear distribution of data is rather straightforward also. I drafted off of my efforts for the uniform distribution to create a skewed one. Since each number generated from a uniform number generator has an equal probability of being chosen, creating 2 generators with different random seeds, and taking a max of their yields will create a roughly linear distribution, skewed towards larger course numbers. For the astute observer, this method introduces the possiblity of duplicate courses for a given student. I will talk in a subsequent section about the method used to remove these duplicates. The average case runtime with the duplicates 
         \subsubsection{Runtime}
              Because each generator has a linear time complexity to properly shuffle its data, running 2 of them serially will have a time complexity of $\Theta(2n)$
+    \subsection{Tiered Distribution}
+        \subsubsection{Method}
+             Much like the linear distribution, I leveraged my work in my first
 
 
 
