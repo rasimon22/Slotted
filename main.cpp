@@ -34,19 +34,22 @@ void test_with_uniform(int c, int s, int k, std::string dist) {
             duplicates[rand] = i;
         }
 
-//        for (int k = 0; k < classes.size(); ++k) {
-//            //iterate over each class per student
-//            for (int l = k; l < classes.size(); ++l) {
-//                //make edge for all other classes in students
-//                //schedule
-//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
-//            }
-//        }
+        Chron::Timer main_t(std::string("uniform_insert_timer"));
+        {
+            for (int k = 0; k < classes.size(); ++k) {
+                //iterate over each class per student
+                for (int l = k; l < classes.size(); ++l) {
+                    //make edge for all other classes in students
+                    //schedule
+                    if (classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+                }
+            }
+        }
     }
     a1.print();
   }
 
-std::cout << Chron::Timer::duration(std::string("uniform_timer"), Chron::Scale::Milliseconds) \
+std::cout << Chron::Timer::duration(std::string("uniform_insert_timer"), Chron::Scale::Nanoseconds) \
     << "ns" << std::endl;
 }
 void test_with_normal(int c, int s, int k, std::string dist) {
@@ -67,26 +70,29 @@ void test_with_normal(int c, int s, int k, std::string dist) {
             //for classes per student
             //pick a random class
             int rand = rand_normal(c/2, c/4);
-            while (duplicates[rand] == i) {
+            while (rand > c || rand < 0 || duplicates[rand] == i) {
                 rand = rand_normal(c/2, c/4);
             }
             classes.push_back(rand);
             duplicates[rand] = i;
         }
 
-//        for (int k = 0; k < classes.size(); ++k) {
-//            //iterate over each class per student
-//            for (int l = k; l < classes.size(); ++l) {
-//                //make edge for all other classes in students
-//                //schedule
-//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
-//            }
-//        }
+        {
+            Chron::Timer main_t(std::string("normal_insert_timer"));
+            for (int k = 0; k < classes.size(); ++k) {
+                //iterate over each class per student
+                for (int l = k; l < classes.size(); ++l) {
+                    //make edge for all other classes in students
+                    //schedule
+                    if (classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+                }
+            }
+        }
     }
     a1.print();
   }
 
-std::cout << Chron::Timer::duration(std::string("normal_timer"), Chron::Scale::Nanoseconds) \
+std::cout << Chron::Timer::duration(std::string("normal_insert_timer"), Chron::Scale::Nanoseconds) \
     << "ns" << std::endl; 
 }
 
@@ -127,7 +133,7 @@ void test_with_linear(int c, int s, int k, std::string dist) {
     a1.print();
   }
 
-  std::cout << Chron::Timer::duration(std::string("linear_timer"), Chron::Scale::Nanoseconds) << "ns" << std::endl; 
+  std::cout << Chron::Timer::duration(std::string("linear_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
 }
 void test_with_tiered(int c, int s, int k, std::string dist) {
     {
@@ -168,7 +174,7 @@ void test_with_tiered(int c, int s, int k, std::string dist) {
     a1.print();
   }
 
-  std::cout << Chron::Timer::duration(std::string("tiered_timer"), Chron::Scale::Nanoseconds) << "ns" << std::endl; 
+  std::cout << Chron::Timer::duration(std::string("tiered_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
 }
 int main(int argc, char *argv[]) {
 

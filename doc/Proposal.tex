@@ -68,10 +68,678 @@
             The method to c reate a linear distribution of data is rather straightforward also. I drafted off of my efforts for the uniform distribution to create a skewed one. Since each number generated from a uniform number generator has an equal probability of being chosen, creating 2 generators with different random seeds, and taking a max of their yields will create a roughly linear distribution, skewed towards larger course numbers. For the astute observer, this method introduces the possiblity of duplicate courses for a given student. I will talk in a subsequent section about the method used to remove these duplicates. The average case runtime with the duplicates 
         \subsubsection{Runtime}
              Because each generator has a linear time complexity to properly shuffle its data, running 2 of them serially will have a time complexity of $\Theta(2n)$
+	\begin{table}[h!]
+	\begin{tabular}{llllllll}
+	c = 4,000   & Courses / Student & 8    & 16   & 32   & 64   & 128  & 256  \\
+	\# Students &            
+
+
+
+       &        &       &       &       &       &       \\
+	1024000         &                   & 421ms & 724ms  & 1324ms & 2583ms & 5058ms  & 10137ms \\
+	2048000         &                   & 782ms  & 1410ms & 2673ms & 5139ms & 10119ms & 20218ms \\
+	\end{tabular}
+	\end{table}
     \subsection{Tiered Distribution}
         \subsubsection{Method}
-             Much like the linear distribution, I leveraged my work in my first
+             Much like the linear distribution, I leveraged my uniform distribution to create a tiered distribution. For this distribution, I created 4 uniform distribution generators, each with a min and max corresponding to a non-overlapping portion of the complete set from which I wish to sample. I then choose 4 numbers, corresponding to each distribution generator. I will choose a random number in the range of the 4 that I have chosen to represent my distributions, and sample from the distribution corresponding to the largest number smaller than the random one I have generated. 
+        \subsubsection{Runtime}
+		This method should run in $\Theta(n) $ time, as I am sampling from one of four generators which also run in linear time. Like in the skewed distribution, I have employed a method to ensure that each student will not have a duplicate course number selected, and I have maintained a linear running time. More on this later.
+	\begin{table}[h!]
+	\begin{tabular}{llllllll}
+	c = 4,000   & Courses / Student & 8    & 16   & 32   & 64   & 128  & 256  \\
+	\# Students &                   &        &       &       &       &       &       \\
+	1024000         &                   & 371ms & 673ms  & 1213ms & 2307ms & 4394ms  & 8762ms \\
+	2048000         &                   & 708ms  & 1301ms & 2431ms & 4758ms & 8674ms & 17117ms \\
+	\end{tabular}
+	\end{table}
+
+	\subsection{Normal Distribution}
+
+	\subsubsection{Method}
+		The distribution I chose as my own is a Normal distribution. Normally distributed data is prolific in natural phenomena, and choice of classes should be no exception. The method I chose to create this distribution is a box-muller transform.  In broad strokes, this method works by sampling a random point in 2 dimensional coordinate space, moving it into a polar coordinate space, and normalizing the distance from the origin to fit the mean and standard deviation of the distribution.
+	\subsubsection{Runtime}
+	This method runs $\Theta(n)$ time. While the constant scalar value for this method is somewhat higher than the previously chosen methods, the runtime is still bounded by a linear function.
+	\begin{table}[h!]
+	\begin{tabular}{llllllll}
+	c = 4,000   & Courses / Student & 8    & 16   & 32   & 64   & 128  & 256  \\
+	\# Students &                   &        &       &       &       &       &       \\
+	1024000         &                   & 536ms & 938ms  & 1699ms & 3220ms & 6539ms  & 13316ms \\
+	2048000         &                   & 1006ms  & 1824ms & 3409ms & 6683ms & 13150ms & 26764ms \\
+	\end{tabular}
+	\end{table}
+
+\section{Graph Construction}
+
+        % To maintain a record of the conflicts between the courses that require them to reside in separate time slots, I inserted each class into a conflict graph, where each node represents a unique course number, and each edge represents a conflict between the courses. To manage this graph, I used an adjacency list data structure. This structure is advantageous for datasets as large as the ones our program is to support, as its information density is high. That is, space is not allocated to represent a non conflict between courses as it would be in an adjacency matrix (sapce complexity of $\Theta(n^2)$, compared to our $\Theta(n)$). Unfortunately, this reduction in memory usage comes at a runtime penalty for insertion and lookup operations. For an adjacency matrix structue that is implemented well, both insertion and lookup operations can be performed in constant time. This is because the structure is contiguously allocated and can be inedexed into as such. Our structure is made up of a contiguously allocated set of pointers, each representing a course number. Address being referenced is the start of a linked list containing the courses that our course conflicts with. This means in the best case, where only 0 or 1 course exists in the list, the access or insertion can be performed in essentially the same amount of time as a random access. However, as the list grows, this time also grows to insert or to access the list (we must ensure that any item inserted does not already exist in the list). As such, this time grows linearly, with respect to the number of conflicts in a given course's adjacency list.  
+
+To maintain a record of conflicts between the courses that require them to reside in separate time slots, I constructed a conflict graph for the given courses, where each node represents a unique course number, and each edge represents a conflict between the courses. To manage this graph, I used an adjacency matrix data structure. This structure is advanatageous for large datasets, like the ones our scheduler is to support. This data structure is very efficient for insertion and lookup operations, however, it is not as efficient in its space complexity. To be exact, the space complexity is $\Theta(n^2 + n)$, as each node will store the number of conflicts it has with each other class. As it stores these values in a contiguously allocated block of memory, which allows for random access, each insertion, and lookup, can be performed in constant time $\Theta(1)$.
+
+\section{Duplicate Removal}
+As alluded to above, a method for ensuring no student would be enrolled in the same course twice is needed. The algorithm I wrote to solve this problem is quite simple. The algorithm keeps a record of the most recent student to enroll in each course, using the student's "id" number to keep track of the courses that the student has enrolled int. While the rng yields a course that the student has already enrolled in, the rng will choose another number. Once a unique course is chosen, the vector is updated to reflect the choice. This algorithm runs in an average case time of $O(n)$.  Because this duplicate removal is baked into the runtimes of the random number generation runtimes, the demonstration that this process can complete in linear time implies that the duplicate removal also completes in linear time.
+\newpage
+
+\section{Appendix}
+\subsection{Code}
+\subsubsection{DataGen.h}
+\begin{verbatim}
+
+}
+#include <iostream>
+#include "Timer.h"
+#include <string>
+#include <unistd.h>
+#include "DataGen.h"
+#include "AdjacencyList.h"
+#include <string>
+#include <stdlib.h>
+#include <vector>
+#include <memory>
+void test_with_uniform(int c, int s, int k, std::string dist) {
+
+    {
+    Chron::Timer main_t(std::string("uniform_timer"));
+    DataGen<size_t, Distribution::Uniform> gen(1,c - 1);
+
+    AdjacencyList a1(c);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i){
+        duplicates[i] = c*2;
+    }
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = gen.yield();
+            //guess again if duplicate
+            while(duplicates[rand] == i){
+                rand = gen.yield();
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+        Chron::Timer main_t(std::string("uniform_insert_timer"));
+        {
+            for (int k = 0; k < classes.size(); ++k) {
+                //iterate over each class per student
+                for (int l = k; l < classes.size(); ++l) {
+                    //make edge for all other classes in students
+                    //schedule
+                    if (classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+                }
+            }
+        }
+    }
+//    a1.print();
+  }
+
+std::cout << Chron::Timer::duration(std::string("uniform_insert_timer"), Chron::Scale::Nanoseconds) \
+    << "ns" << std::endl;
+}
+void test_with_normal(int c, int s, int k, std::string dist) {
+
+    {
+
+    Chron::Timer main_t(std::string("normal_timer"));
+    DataGen<size_t, Distribution::Uniform> gen(1,c);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i){
+        duplicates[i] = c*2;
+    }
+    AdjacencyList a1(c);
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = rand_normal(c/2, c/4);
+            while (rand > c || rand < 0 || duplicates[rand] == i) {
+                rand = rand_normal(c/2, c/4);
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+        {
+            Chron::Timer main_t(std::string("normal_insert_timer"));
+            for (int k = 0; k < classes.size(); ++k) {
+                //iterate over each class per student
+                for (int l = k; l < classes.size(); ++l) {
+                    //make edge for all other classes in students
+                    //schedule
+                    if (classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+                }
+            }
+        }
+    }
+    a1.print();
+  }
+
+std::cout << Chron::Timer::duration(std::string("normal_insert_timer"), Chron::Scale::Nanoseconds) \
+    << "ns" << std::endl; 
+}
+
+void test_with_linear(int c, int s, int k, std::string dist) {
+    {
+    Chron::Timer main_t(std::string("linear_timer"));
+    DataGen<size_t, Distribution::Uniform> gen(1,c-1);
+    DataGen<size_t, Distribution::Uniform> gen2(1,c-1);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i) {
+        duplicates[i] = c*2;
+    }
+
+    AdjacencyList a1(c);
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = DataGen<size_t, Distribution::Uniform>::rand_linear(gen,gen2);
+            while(duplicates[rand] == i) {
+                rand = DataGen<size_t, Distribution::Uniform>::rand_linear(gen,gen2);
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+//        for (int k = 0; k < classes.size(); ++k) {
+//            //iterate over each class per student
+//            for (int l = k; l < classes.size(); ++l) {
+//                //make edge for all other classes in students
+//                //schedule
+//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+//            }
+//        }
+    }
+    a1.print();
+  }
+
+  std::cout << Chron::Timer::duration(std::string("linear_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
+}
+void test_with_tiered(int c, int s, int k, std::string dist) {
+    {
+    Chron::Timer main_t(std::string("tiered_timer"));
+    DataGen<int, Distribution::Uniform> gen(1,(int)c/4);
+    DataGen<int, Distribution::Uniform> gen2((int)c/4, (int)c/2);
+    DataGen<int, Distribution::Uniform> gen3((int)c/2,(int)(3*c/4));
+    DataGen<int, Distribution::Uniform> gen4((int)(3*c/4),c);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i) {
+        duplicates[i] = c*2;
+    }
+    int probs[4] = {10, 11, 13, 50 };
+    AdjacencyList a1(c);
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = rand_tiered(gen, gen2, gen3, gen4, probs);
+            while(duplicates[rand] == i) {
+                rand =  rand_tiered(gen, gen2, gen3, gen4, probs);
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
 
 
+
+//        for (int k = 0; k < classes.size(); ++k) {
+//            //iterate over each class per student
+//            for (int l = k; l < classes.size(); ++l) {
+//                //make edge for all other classes in students
+//                //schedule
+//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+//            }
+//        }
+    }
+    a1.print();
+  }
+
+  std::cout << Chron::Timer::duration(std::string("tiered_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
+}
+int main(int argc, char *argv[]) {
+
+    std::cout << "Hello, World!" << std::endl;
+    usleep(100000);
+    std::cout << "C: " << argv[1] << std::endl;
+    size_t c = atoi(argv[1]);
+    std::cout << "S: " << argv[2] << std::endl;
+    size_t s = atoi(argv[2]);
+    std::cout << "K: " << argv[3] << std::endl;
+    size_t k = atoi(argv[3]);
+    std::cout << "DIST: " << argv[4] << std::endl;
+    std::string dist = std::string(argv[4]);
+    if (dist == "LINEAR"){ 
+    test_with_linear(c, s, k, dist);
+    std::cout << std::endl;
+    }
+    if (dist == "UNIFORM") {
+    test_with_uniform(c, s, k, dist);
+    std::cout << std::endl;
+    }
+    if (dist == "NORMAL") {
+    test_with_normal(c, s, k, dist);
+    std::cout << std::endl;
+    }
+    if (dist == "TIERED") {
+    test_with_tiered(c, s, k, dist);
+    std::cout << std::endl;
+    }
+
+  return 0;
+}
+\end{verbatim}
+\subsubsection{Timer.h}
+ \begin{verbatim}
+//
+// Created by rasimon on 9/12/19.
+//
+
+#ifndef SLOTTED_TIMER_H
+#define SLOTTED_TIMER_H
+
+#include <map>
+#include <string>
+#include <time.h>
+
+
+namespace Chron {
+    enum class Scale {
+        Seconds, Milliseconds, Nanoseconds
+    };
+
+    class Timer {
+        timespec start, finish;
+        std::string run;
+        static std::map<std::string, unsigned long long> times;
+
+    public:
+        Timer() = delete;
+
+        explicit Timer(std::string);
+
+        explicit Timer(const char *);
+
+        ~Timer();
+
+        static unsigned long long duration(const std::string &, Scale = Scale::Nanoseconds);
+
+        static unsigned long long duration(const char *, Scale = Scale::Nanoseconds);
+
+    };
+}
+
+#endif SLOTTED_TIMER_H
+\end{verbatim}
+
+\subsubsection{Timer.cpp}
+\begin{verbatim}
+//
+// Created by rasimon on 9/12/19.
+//
+
+#include "Timer.h"
+#include <iostream>
+
+std::map<std::string, unsigned long long> Chron::Timer::times;
+
+Chron::Timer::Timer(const char *str) : run(std::string(str)), start(), finish() {
+  clock_gettime(CLOCK_MONOTONIC, &start);
+}
+
+Chron::Timer::Timer(std::string run) : run(std::move(run)), start(), finish() {
+  clock_gettime(CLOCK_MONOTONIC, &start);
+}
+
+Chron::Timer::~Timer() {
+  clock_gettime(CLOCK_MONOTONIC, &finish);
+  Timer::times[this->run] = ((this->finish.tv_sec * 1000000000) + this->finish.tv_nsec) \
+ - ((this->start.tv_sec * 1000000000) + this->start.tv_nsec);
+
+}
+
+unsigned long long Chron::Timer::duration(const std::string &str, Chron::Scale scale) {
+  //call implementation with c_string
+  return duration(str.c_str(), scale);
+
+}
+
+unsigned long long Chron::Timer::duration(const char *str, Chron::Scale scale) {
+  std::string key(str);
+  switch (scale) {
+    case Chron::Scale::Seconds: {
+      return Chron::Timer::times.find(key)->second / 1000000000;
+    }
+
+    case Chron::Scale::Milliseconds : {
+      return Chron::Timer::times.find(key)->second / 1000000;
+    }
+
+    case Chron::Scale::Nanoseconds : {
+      return Chron::Timer::times.find(key)->second;
+    }
+
+    default:
+      return Chron::Timer::times.find(key)->second / 1000000;
+  }
+}
+\end{verbatim}
+
+\subsubsection{AdjacencyList.h}
+\begin{verbatim}
+#include <memory>
+
+struct Node {
+        long data;
+        long count;
+        std::unique_ptr<Node> next;
+        Node(): data(-1), count(1), next(std::unique_ptr<Node>(nullptr)){};
+        Node(long data): data(data), count(1), next(std::unique_ptr<Node>(nullptr)){
+        }
+};
+
+class AdjacencyList {
+//    std::unique_ptr<Node[]> data;
+    std::unique_ptr<long[]> data;
+    long size;
+    long& at(long, long);
+    void add(long, long);
+public:
+    
+    AdjacencyList();
+    AdjacencyList(long);
+    void insert(long, long);
+    bool is_adjacent(long, long);
+    void print();
+
+};
+
+\end{verbatim}
+\subsubsection{AdjacencyList.cpp}
+\begin{verbatim}
+#include "AdjacencyList.h"
+#include <iostream>
+
+AdjacencyList::AdjacencyList() {};
+
+AdjacencyList::AdjacencyList(long init_size) {
+//    data = std::unique_ptr<Node[]>(new Node[init_size + 1]);
+    data = std::unique_ptr<long[]>(new long[init_size*init_size]);
+    size = init_size;
+}
+
+long& AdjacencyList::at(long course, long index) {
+    return data[(course * size) + (index)];
+}
+
+void AdjacencyList::add(long n1, long n2) {
+//    if (n1 < size-1 && n1 > 0 && n2 < size-1 && n2 > 0) {
+//        if (data[n1].data == -1) {
+//            data[n1].data = n2;
+//            return;
+//        } else {
+//            Node *it(&data[n1]);
+//            for(;;){
+//                if(it->data == n2) {
+//                    it->count++;
+//                    return;
+//                }
+//                if(it->next.get()) {
+//                    it = it->next.get();
+//                } else {
+//                    break;
+//                }
+//            }
+//            it->next = std::unique_ptr<Node>(new Node(n2));
+//        }
+//    }
+    ++at(n1, n2);
+}
+
+void  AdjacencyList::print() {
+//    for(long i = 0; i < size; ++i) {
+//        std::cout << i << ")";
+//        Node *it(&data[i]);
+//        std::cout << "->" << "(" << it->data << ":" << it->count << ")";
+//        while(it->next.get()) {
+//            it = it->next.get();
+//            std::cout << "->" << "(" << it->data << ":" << it->count << ")";
+//        }
+//        std::cout << std::endl;
+//    }
+    for(long i = 0; i < size; ++i) {
+        std::cout << i << ")";
+        for (long j = 0; j < size; ++j) {
+            std::cout << "->" << "(" << j << ":" << at(i, j) << ")";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void AdjacencyList::insert(long n1, long n2) {
+    add(n1, n2);
+    add(n2, n1);
+}
+\end{verbatim}
+\subsubsection{main.cpp}
+\begin{verbatim}
+#include <iostream>
+#include "Timer.h"
+#include <string>
+#include <unistd.h>
+#include "DataGen.h"
+#include "AdjacencyList.h"
+#include <string>
+#include <stdlib.h>
+#include <vector>
+#include <memory>
+void test_with_uniform(int c, int s, int k, std::string dist) {
+
+    {
+    Chron::Timer main_t(std::string("uniform_timer"));
+    DataGen<size_t, Distribution::Uniform> gen(1,c - 1);
+
+    AdjacencyList a1(c);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i){
+        duplicates[i] = c*2;
+    }
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = gen.yield();
+            //guess again if duplicate
+            while(duplicates[rand] == i){
+                rand = gen.yield();
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+        Chron::Timer main_t(std::string("uniform_insert_timer"));
+        {
+            for (int k = 0; k < classes.size(); ++k) {
+                //iterate over each class per student
+                for (int l = k; l < classes.size(); ++l) {
+                    //make edge for all other classes in students
+                    //schedule
+                    if (classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+                }
+            }
+        }
+    }
+//    a1.print();
+  }
+
+std::cout << Chron::Timer::duration(std::string("uniform_insert_timer"), Chron::Scale::Nanoseconds) \
+    << "ns" << std::endl;
+}
+void test_with_normal(int c, int s, int k, std::string dist) {
+
+    {
+
+    Chron::Timer main_t(std::string("normal_timer"));
+    DataGen<size_t, Distribution::Uniform> gen(1,c);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i){
+        duplicates[i] = c*2;
+    }
+    AdjacencyList a1(c);
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = rand_normal(c/2, c/4);
+            while (rand > c || rand < 0 || duplicates[rand] == i) {
+                rand = rand_normal(c/2, c/4);
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+        {
+            Chron::Timer main_t(std::string("normal_insert_timer"));
+            for (int k = 0; k < classes.size(); ++k) {
+                //iterate over each class per student
+                for (int l = k; l < classes.size(); ++l) {
+                    //make edge for all other classes in students
+                    //schedule
+                    if (classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+                }
+            }
+        }
+    }
+    a1.print();
+  }
+
+std::cout << Chron::Timer::duration(std::string("normal_insert_timer"), Chron::Scale::Nanoseconds) \
+    << "ns" << std::endl; 
+}
+
+void test_with_linear(int c, int s, int k, std::string dist) {
+    {
+    Chron::Timer main_t(std::string("linear_timer"));
+    DataGen<size_t, Distribution::Uniform> gen(1,c-1);
+    DataGen<size_t, Distribution::Uniform> gen2(1,c-1);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i) {
+        duplicates[i] = c*2;
+    }
+
+    AdjacencyList a1(c);
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = DataGen<size_t, Distribution::Uniform>::rand_linear(gen,gen2);
+            while(duplicates[rand] == i) {
+                rand = DataGen<size_t, Distribution::Uniform>::rand_linear(gen,gen2);
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+//        for (int k = 0; k < classes.size(); ++k) {
+//            //iterate over each class per student
+//            for (int l = k; l < classes.size(); ++l) {
+//                //make edge for all other classes in students
+//                //schedule
+//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+//            }
+//        }
+    }
+    a1.print();
+  }
+
+  std::cout << Chron::Timer::duration(std::string("linear_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
+}
+void test_with_tiered(int c, int s, int k, std::string dist) {
+    {
+    Chron::Timer main_t(std::string("tiered_timer"));
+    DataGen<int, Distribution::Uniform> gen(1,(int)c/4);
+    DataGen<int, Distribution::Uniform> gen2((int)c/4, (int)c/2);
+    DataGen<int, Distribution::Uniform> gen3((int)c/2,(int)(3*c/4));
+    DataGen<int, Distribution::Uniform> gen4((int)(3*c/4),c);
+    std::unique_ptr<int[]> duplicates(new int[c]);
+    for(int i = 0; i < c; ++i) {
+        duplicates[i] = c*2;
+    }
+    int probs[4] = {10, 11, 13, 50 };
+    AdjacencyList a1(c);
+    for (int i = 0; i < s; ++ i) {
+        //for each student
+        std::vector<size_t> classes;
+        for (int j = 0; j < k; ++j) {
+            //for classes per student
+            //pick a random class
+            int rand = rand_tiered(gen, gen2, gen3, gen4, probs);
+            while(duplicates[rand] == i) {
+                rand =  rand_tiered(gen, gen2, gen3, gen4, probs);
+            }
+            classes.push_back(rand);
+            duplicates[rand] = i;
+        }
+
+//        for (int k = 0; k < classes.size(); ++k) {
+//            //iterate over each class per student
+//            for (int l = k; l < classes.size(); ++l) {
+//                //make edge for all other classes in students
+//                //schedule
+//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+//            }
+//        }
+    }
+    a1.print();
+  }
+
+  std::cout << Chron::Timer::duration(std::string("tiered_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
+}
+int main(int argc, char *argv[]) {
+
+    std::cout << "Hello, World!" << std::endl;
+    usleep(100000);
+    std::cout << "C: " << argv[1] << std::endl;
+    size_t c = atoi(argv[1]);
+    std::cout << "S: " << argv[2] << std::endl;
+    size_t s = atoi(argv[2]);
+    std::cout << "K: " << argv[3] << std::endl;
+    size_t k = atoi(argv[3]);
+    std::cout << "DIST: " << argv[4] << std::endl;
+    std::string dist = std::string(argv[4]);
+    if (dist == "LINEAR"){ 
+    test_with_linear(c, s, k, dist);
+    std::cout << std::endl;
+    }
+    if (dist == "UNIFORM") {
+    test_with_uniform(c, s, k, dist);
+    std::cout << std::endl;
+    }
+    if (dist == "NORMAL") {
+    test_with_normal(c, s, k, dist);
+    std::cout << std::endl;
+    }
+    if (dist == "TIERED") {
+    test_with_tiered(c, s, k, dist);
+    std::cout << std::endl;
+    }
+
+  return 0;
+}
+\end{verbatim}
 
 \end{document}
