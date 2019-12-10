@@ -47,6 +47,11 @@ void test_with_uniform(int c, int s, int k, std::string dist) {
         }
     }
     a1.print();
+
+    std::cout <<"ORDERING" << std::endl;
+    a1.smallest_least_ordering();
+
+
   }
 
 std::cout << Chron::Timer::duration(std::string("uniform_insert_timer"), Chron::Scale::Nanoseconds) \
@@ -57,7 +62,7 @@ void test_with_normal(int c, int s, int k, std::string dist) {
     {
 
     Chron::Timer main_t(std::string("normal_timer"));
-    DataGen<size_t, Distribution::Uniform> gen(1,c);
+    DataGen<size_t, Distribution::Uniform> gen(1,c-1);
     std::unique_ptr<int[]> duplicates(new int[c]);
     for(int i = 0; i < c; ++i){
         duplicates[i] = c*2;
@@ -121,16 +126,17 @@ void test_with_linear(int c, int s, int k, std::string dist) {
             duplicates[rand] = i;
         }
 
-//        for (int k = 0; k < classes.size(); ++k) {
-//            //iterate over each class per student
-//            for (int l = k; l < classes.size(); ++l) {
-//                //make edge for all other classes in students
-//                //schedule
-//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
-//            }
-//        }
+        for (int k = 0; k < classes.size(); ++k) {
+            //iterate over each class per student
+            for (int l = k; l < classes.size(); ++l) {
+                //make edge for all other classes in students
+                //schedule
+                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+            }
+        }
     }
     a1.print();
+    a1.smallest_least_ordering();
   }
 
   std::cout << Chron::Timer::duration(std::string("linear_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;
@@ -141,12 +147,12 @@ void test_with_tiered(int c, int s, int k, std::string dist) {
     DataGen<int, Distribution::Uniform> gen(1,(int)c/4);
     DataGen<int, Distribution::Uniform> gen2((int)c/4, (int)c/2);
     DataGen<int, Distribution::Uniform> gen3((int)c/2,(int)(3*c/4));
-    DataGen<int, Distribution::Uniform> gen4((int)(3*c/4),c);
+    DataGen<int, Distribution::Uniform> gen4((int)(3*c/4),c-1);
     std::unique_ptr<int[]> duplicates(new int[c]);
     for(int i = 0; i < c; ++i) {
         duplicates[i] = c*2;
     }
-    int probs[4] = {10, 11, 13, 50 };
+    int probs[4] = {10, 11, 30, 50 };
     AdjacencyList a1(c);
     for (int i = 0; i < s; ++ i) {
         //for each student
@@ -162,16 +168,17 @@ void test_with_tiered(int c, int s, int k, std::string dist) {
             duplicates[rand] = i;
         }
 
-//        for (int k = 0; k < classes.size(); ++k) {
-//            //iterate over each class per student
-//            for (int l = k; l < classes.size(); ++l) {
-//                //make edge for all other classes in students
-//                //schedule
-//                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
-//            }
-//        }
+        for (int k = 0; k < classes.size(); ++k) {
+            //iterate over each class per student
+            for (int l = k; l < classes.size(); ++l) {
+                //make edge for all other classes in students
+                //schedule
+                if(classes[k] != classes[l]) a1.insert(classes[k], classes[l]);
+            }
+        }
     }
     a1.print();
+    a1.smallest_least_ordering();
   }
 
   std::cout << Chron::Timer::duration(std::string("tiered_timer"), Chron::Scale::Milliseconds) << "ns" << std::endl;

@@ -60,7 +60,7 @@ DataGen<T, U>::DataGen(size_t min, size_t max) {
     front = data.get();
     back = &data[range-1];
     for(size_t i = 0; i < range; ++i) {
-    data[i] = static_cast<T>(min + i) + 1;
+    data[i] = static_cast<T>(min + i);
     }
     len = range;
     regen();
